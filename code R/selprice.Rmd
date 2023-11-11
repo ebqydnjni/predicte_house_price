@@ -1,0 +1,320 @@
+---
+title: "K-Means avec R/ pr: Aldiouma SELPRICE"
+output: html_notebook
+---
+library
+```{r}
+library(readr)
+library(ineq)
+library(tidyverse)
+library(ggplot2)
+library(psych)
+library(FactoMineR)
+library(factoextra)
+library(magick)
+  library(summarytools)
+library(factoextra)
+library(factoextra)
+```
+
+#### les information Descriptis sur le dataset avec la fonction summary
+####les information sur le nombre de variable et de colone et les noms et types de varriables
+```{r}
+summary(train)
+dim(train)
+names(train)
+str(train)
+train <- train [ ,-1]
+```
+
+################### Nous allons d'abord renome les noms des variable dans train
+```{r}
+colnames(train) <- c("typelogeconV"," clasGzonV","Rue_reliés_à_la_propriété " ,"Tlotpiedscarres","Rue","Ruell","FormGProp","Planetepropriete","Utilitaires","configurationLot","penteProp","Quartier","Condition1","Condition2","typelogement","styledelogement","matglobal","etatGmaison","Année de construction ","Datereamenagement ","typetoit","materiauduToit","RevêtementExtérieur1st","Revêtementextérieur 2nd","typeplacmaçon","surfplacmaçon","qualitematexter","etatmatexter","Fondation","Hautsoussolqualite","etaGsoussol","Nivjardin","SurffinisoussolQual","Piedscarrésfinisdetype 1 ","EvalSurffinisoussor","Piedscarrésfinisdetype 2","PiedscarrésinachevésSurFsousol","totalSPiedscarréssousol","Chauffage ","EtatqualiteChauffag","climcentral","Électrique ", "1stpiedscarrés", "2nd pieds carrés", "Pieds_carrés_finis_faible_qualité","SurHabitablesoussol","salbainsComplsoussol", "DemiSalbainssoussol", "salbainsCompldessus", "Demi-bain", "Chambre", "Cuisine", "Qualite cuisine", "nbrTotalchbr","Fonctionnel", "nbrCheminées", "qualiteCheminées", "GarageType", "anconsGarage", "finiInterGarage",  "GarageCars","Garage  pieds carrés ", "qualiteGarage", "CondGarage", "allépavée","Surface de pont en bois en pieds carrés","Porche ouvert en pieds carrés", "Porche fermée","Porche trois saisons en pieds carrés ","Surface du porche de l'écran en pieds carrés ","Surface de la piscine piec","Pool", "Clôture", "Fonctionnalités diverses","MiscVal","moisvendu","Année de vente","typeVente","conditionvent","prixdevent")
+names(train)
+```
+
+##### Nous allons Maintenant séparer les variables selon leur type : QUANTITATIVE OU QUALITATIVE
+
+### POUR LES VARIABLE QUALITATIF
+```{r}
+varQualitatifs <-train[sapply(train, class) == "character"]
+View(varQualitatifs)
+```
+
+### POUR LES VARIABLE QUAntitatif
+```{r}
+varQuantitatifs <- train[sapply(train, class) == "numeric"]
+View(varQuantitatifs)
+```
+
+##### Pour les NA des variables Qualitatives nous allons les remplaceer 
+#### selon les variables par leur propriete dans la description
+
+
+##Pour verifier si nous avons remplacer tout les valeur manquantes des variables Qualitatis
+
+```{r}
+sum(is.na(varQualitatifs))
+colSums(is.na(varQualitatifs))
+```
+
+##### Pour les NA des variables Quantitatives  nous allons les remplaceer 
+###soit par la moyen soit par la mediane
+
+```{r}
+meanR <- mean(train$`Rue_reliés_à_la_propriété `, na.rm = TRUE)
+train$`Rue_reliés_à_la_propriété `[is.na(train$`Rue_reliés_à_la_propriété `)]<- meanR
+meansurf <- mean(train$surfplacmaçon, na.rm = TRUE)
+train$surfplacmaçon[is.na(train$surfplacmaçon)]<- meansurf
+meanG <- mean(train$anconsGarage, na.rm = TRUE)
+train$anconsGarage[is.na(train$anconsGarage)]<- meanG
+```
+
+##Pour verifier si nous avons remplacer tout les valeur manquantes des variables Quatitatifs
+```{r}
+sum(is.na(varQualitatifs))
+colSums((varQualitatifs))
+```
+
+#####  Nous allons visualiser les variables Quantitatives avec notre variale cible pridevente
+```{r}
+plot(train$typelogeconV,train$prixdevent)
+plot(train$`Rue_reliés_à_la_propriété `,train$prixdevent)
+plot(train$Tlotpiedscarres,train$prixdevent)
+plot(train$matglobal,train$prixdevent)
+plot(train$`Datereamenagement `,train$prixdevent)
+plot(train$etatGmaison,train$prixdevent)
+plot(train$`Année de construction `,train$prixdevent)
+plot(train$surfplacmaçon,train$prixdevent)
+plot(train$`Piedscarrésfinisdetype 1 `,train$prixdevent)
+plot(train$`Piedscarrésfinisdetype 2`,train$prixdevent)
+plot(train$PiedscarrésinachevésSurFsousol,train$prixdevent)
+plot(train$totalSPiedscarréssousol,train$prixdevent)
+plot(train$`1stpiedscarrés`,train$prixdevent)
+plot(train$`2nd pieds carrés`,train$prixdevent)
+plot(train$Pieds_carrés_finis_faible_qualité,train$prixdevent)
+plot(train$SurHabitablesoussol,train$prixdevent)
+plot(train$salbainsComplsoussol,train$prixdevent)
+plot(train$DemiSalbainssoussol,train$prixdevent)
+plot(train$salbainsCompldessus,train$prixdevent)
+plot(train$`Demi-bain`,train$prixdevent)
+plot(train$Chambre,train$prixdevent)
+plot(train$Cuisine,train$prixdevent)
+plot(train$nbrTotalchbr,train$prixdevent)
+plot(train$nbrCheminées,train$prixdevent)
+plot(train$anconsGarage,train$prixdevent)
+plot(train$GarageCars,train$prixdevent)
+plot(train$`Garage  pieds carrés `,train$prixdevent)
+plot(train$`Surface de pont en bois en pieds carrés`,train$prixdevent)
+plot(train$`Porche ouvert en pieds carrés`,train$prixdevent)
+plot(train$`Porche fermée`,train$prixdevent)
+plot(train$`Porche trois saisons en pieds carrés `,train$prixdevent)
+plot(train$`Surface du porche de l'écran en pieds carrés`,train$prixdevent)
+plot(train$`Surface de la piscine piec`,train$prixdevent)
+plot(train$MiscVal,train$prixdevent)
+plot(train$moisvendu,train$prixdevent)
+plot(train$`Année de vente`,train$prixdevent)
+```
+
+#####On Note qu'ol y'as une fprte correlation de ces varriableavec le prixdevent des maisons
+#Rue_reliés_à_la_propriété,Tlotpiedscarres,surfplacmaçon,Piedscarrésfinisdetype 1,Piedscarrésfinisdetype 2
+#PiedscarrésinachevésSurFsousol,totalSPiedscarréssousol,1stpiedscarrés,salbainsComplsoussol,Surface de pont en bois en pieds carrés
+#Porche ouvert en pieds carré
+```{r}
+shapiro.test(train$typelogeconV)
+shapiro.test(train$`Rue_reliés_à_la_propriété `)
+shapiro.test(train$Tlotpiedscarres)
+shapiro.test(train$matglobal)
+shapiro.test(train$`Datereamenagement `)
+shapiro.test(train$etatGmaison)
+shapiro.test(train$`Année de construction `)
+shapiro.test(train$surfplacmaçon)
+shapiro.test(train$`Piedscarrésfinisdetype 1 `)
+shapiro.test(train$`Piedscarrésfinisdetype 2`)
+shapiro.test(train$PiedscarrésinachevésSurFsousol)
+shapiro.test(train$totalSPiedscarréssousol)
+shapiro.test(train$`1stpiedscarrés`)
+shapiro.test(train$`2nd pieds carrés`)
+```
+
+```{r}
+wilcox.test(train$typelogeconV,train$prixdevent)# p< 0.5  Il y’ a une différence significative
+wilcox.test(train$`Rue_reliés_à_la_propriété `,train$prixdevent)# p< 0.5  Il y’ a une différence significatives
+wilcox.test(train$Tlotpiedscarres,train$prixdevent)# p< 0.5  Il y’ a une différence significative
+wilcox.test(train$matglobal,train$prixdevent)# p< 0.5  Il y’ a une différence significative
+wilcox.test(train$`Datereamenagement `,train$prixdevent)# p< 0.5  Il y’ a une différence significative
+wilcox.test(train$etatGmaison,train$prixdevent)# p< 0.5  Il y’ a une différence significative
+wilcox.test(train$`Année de construction `,train$prixdevent)# p< 0.5  Il y’ a une différence significative
+wilcox.test(train$surfplacmaçon,train$prixdevent)# p< 0.5  Il y’ a une différence significative
+wilcox.test(train$`Piedscarrésfinisdetype 1 `,train$prixdevent)# p< 0.5  Il y’ a une différence significative
+wilcox.test(train$`Piedscarrésfinisdetype 2`,train$prixdevent)# p< 0.5  Il y’ a une différence significative
+wilcox.test(train$PiedscarrésinachevésSurFsousol,train$prixdevent)# p< 0.5  Il y’ a une différence significative
+wilcox.test(train$totalSPiedscarréssousol,train$prixdevent)# p< 0.5  Il y’ a une différence significative
+wilcox.test(train$`1stpiedscarrés`,train$prixdevent)# p< 0.5  Il y’ a une différence significative
+wilcox.test(train$`2nd pieds carrés`,train$prixdevent)# p< 0.5  Il y’
+```
+
+```{r}
+######Cherchons tout d'abord s'il y a corelation entre les varriables 
+cor(varQuantitatifs)
+view(cor(varQuantitatifs))
+standarvarquantitatif <- as.data.frame(scale(varQuantitatifs))
+standarvarquantitatif
+a<- mean(standarvarquantitatif$`Rue_reliés_à_la_propriété `, na.rm = TRUE)
+standarvarquantitatif$`Rue_reliés_à_la_propriété `[is.na(standarvarquantitatif$`Rue_reliés_à_la_propriété `)]<- a
+b <- mean(standarvarquantitatif$surfplacmaçon, na.rm = TRUE)
+standarvarquantitatif$surfplacmaçon[is.na(standarvarquantitatif$surfplacmaçon)]<- b
+c <- mean(standarvarquantitatif$anconsGarage, na.rm = TRUE)
+standarvarquantitatif$anconsGarage[is.na(standarvarquantitatif$anconsGarage)]<- c
+sum(is.na(standarvarquantitatif))
+####On constate qu'il y'a une forte correlations entre les varriables ces resultat confirme les forte nuage de correlation 
+####observer sur la visualition
+```
+```{r}
+### calculons la moyen 
+sapply(standarvarquantitatif,mean)
+varQuantitatifs.pca <- PCA(standarvarquantitatif)
+print(varQuantitatifs.pca)
+####cherchons mettenant la varriances ,la contribution
+sdVarq<-varQuantitatifs.pca$eig
+sdVarq
+##nbrTotalchbr,SurHabitablesoussol,matglobal,2nd pieds carrés,totalSPiedscarréssousol,chambre,
+#3salbainsCompldessus,etatGmaison,nbrCheminées,GarageCars,surfplacmaçon,Année de construction,Année de construction on une influence significative 
+##sur le pridevente des maison
+
+#Rue_reliés_à_la_propriété,Tlotpiedscarres,surfplacmaçon,Piedscarrésfinisdetype 1,Piedscarrésfinisdetype 2
+#PiedscarrésinachevésSurFsousol,totalSPiedscarréssousol,1stpiedscarrés,salbainsComplsoussol,Surface de pont en bois en pieds carrés
+#Porche ouvert en pieds carré
+trainImport <-varQuantitatifs[0:40 ,c("Rue_reliés_à_la_propriété ","Tlotpiedscarres","surfplacmaçon","Piedscarrésfinisdetype 1 ","PiedscarrésinachevésSurFsousol","totalSPiedscarréssousol","salbainsComplsoussol","Surface de la piscine piec","Porche ouvert en pieds carrés","Surface de pont en bois en pieds carrés","matglobal")]
+
+trainImport<- sapply(trainImport, as.numeric)
+trainImport.pca <-PCA(trainImport)
+
+```
+```{r}
+####information sur les varriables
+head(varQuantitatifs.pca$var$coord)
+head(varQuantitatifs.pca$var$contrib)
+head(varQuantitatifs.pca$var$cos2)
+head(varQuantitatifs.pca$ind)
+head(varQuantitatifs.pca$ind$coord)
+head(varQuantitatifs.pca$ind$contrib)
+head(varQuantitatifs.pca$ind$cos2)
+head(trainImport$var$coord)
+
+###### INTERPRETATION G Pour les varriables Quantitative
+###Retenons donc que pour les varriables qualitatifs 
+###nous allons prendre en compte que les varriables qui influe par
+###rapport a nitre varriable cible(pridevent) pour la regression
+
+
+```
+```{r}
+###### Visualisation des Varriables Qualitative
+library(ggplot2)
+library(GGally)
+ggpairs(varQualitatifsI)
+library(scatterPlotMatrix)
+varQualitatifsI<- varQualitatifs[0:50,0:42]
+dotchart(table(varQualitatif$Utilitaires))
+head(varQualitatifs)
+summary(varQualitatifs)
+tail(varQualitatifs)
+mode(varQualitatifs)
+dataQuali <- varQualitatifs[c(3:18),c("FormGProp","configurationLot","Nivjardin","qualitematexter","EtatqualiteChauffag","Clôture","finiInterGarage","Quartier")]
+dataQuali = matrix(varQualitatifs, nrow= 10,ncol = 10)
+
+dataQuali <- dataQuali[sapply(dataQuali, class) == "numeric"]
+barplot(dataQuali, aes(x=Utilitaires, y=Rue)) 
+barplot(table(varQualitatifs$Utilitaires,varQualitatifs$Rue))
+barplot(dataQuali)
+View(dataQuali)
+```
+```{r}
+#####NA train
+train$Ruell[is.na(train$Ruell)] <- "Pas d’accès à la ruelle"
+train$Hautsoussolqualite[is.na(train$Hautsoussolqualite)] <- "Pas de sous-sol"
+train$etaGsoussol[is.na(train$etaGsoussol)] <- "Pas de sous-sol"
+train$Nivjardin[is.na(train$Nivjardin)] <- "Pas de sous-sol"
+train$SurffinisoussolQual[is.na(train$SurffinisoussolQual)]  <- "Pas de sous-sol"
+train$EvalSurffinisoussor[is.na(train$EvalSurffinisoussor)] <- "Pas de sous-sol"
+train$Clôture[is.na(train$Clôture)] <- "Pas De Clôture"
+train$`Fonctionnalités diverses`[is.na(train$`Fonctionnalités diverses`)] <- " Aucun"
+train$Pool[is.na(train$Pool)]<- "Pas De Poll"
+train$qualiteCheminées[is.na(train$qualiteCheminées)] <- "Pas De Cheminée"
+train$GarageType[is.na(train$GarageType)] <- "Pas de garage"
+train$finiInterGarage[is.na(train$finiInterGarage)]<- "Pas de garage"
+train$qualiteGarage[is.na(train$qualiteGarage)]<- "Pas de garage"
+train$CondGarage[is.na(train$CondGarage)]<- "Pas de garage"
+train$typeplacmaçon[is.na(train$typeplacmaçon) ] <- "Aucun"
+train$`Électrique `[is.na(train$`Électrique `)] <- "pas electricite"
+meana<- mean(train$`Rue_reliés_à_la_propriété `, na.rm = TRUE)
+train$`Rue_reliés_à_la_propriété `[is.na(train$`Rue_reliés_à_la_propriété `)]<- meana
+meansur <- mean(train$surfplacmaçon, na.rm = TRUE)
+train$surfplacmaçon[is.na(train$surfplacmaçon)]<- meansur
+meanGa <- mean(train$anconsGarage, na.rm = TRUE)
+train$anconsGarage[is.na(train$anconsGarage)]<- meanGa
+
+
+```
+```{r}
+##################### La regression multiple
+###Régression multiple : La régression multiple est utilisée pour modéliser la relation entre 
+###plusieurs variables explicatives et une variable cible. Vous pouvez utiliser la fonction "lm()" 
+##(Linear Model) de R pour effectuer une régression multiple
+
+
+
+
+x <-train[ ,c("SurHabitablesoussol","matglobal","totalSPiedscarréssousol","salbainsCompldessus","Rue_reliés_à_la_propriété","Tlotpiedscarres","surfplacmaçon","Piedscarrésfinisdetype 1 ","Piedscarrésfinisdetype 2","PiedscarrésinachevésSurFsousol","salbainsComplsoussol","FormGProp","configurationLot","Nivjardin","qualitematexter","EtatqualiteChauffag","Clôture","finiInterGarage","Quartier")]
+y <-train[ ,"prixdevent"]
+
+gama <- lm(y ~ x)
+
+summary(gama)
+
+##Utilisez la fonction confint() pour obtenir l'intervalle de confiance.
+
+confint(gama)
+
+
+
+
+# Visualiser les résultats de la régression multiple
+plot(x[,1], y, xlab = x , ylab = "prixdevent")
+abline(gama, col = "red")
+
+# Prédire la variable cible en utilisant les variables explicatives
+predictions <- predict(gama, newdata = x)
+# Calculer le coefficient de détermination (R²)
+rsq <- rsquared(gama)
+
+# Afficher le R²
+print(gama)
+
+# Vérifier si les résidus suivent une distribution normale
+residuals <- residuals(gama)
+
+# Utiliser qqnorm() pour vérifier si les résidus suivent une distribution normale
+qqnorm(residuals)
+
+# Utiliser qqline() pour ajouter une droite de référence pour une distribution normale
+qqline(residuals)
+
+# Calculer le coefficient de détermination (R²)
+rsq <- rsquared(gama)
+
+# Afficher le R²
+print(rsq)
+
+# Vérifier si les résidus suivent une distribution normale
+residuals <- residuals(gama)
+
+# Utiliser qqnorm() pour vérifier si les résidus suivent une distribution normale
+qqnorm(residuals)
+
+# Utiliser qqline() pour ajouter une droite de référence pour une distribution normale
+qqline(residuals)
+
+```
+
